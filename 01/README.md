@@ -1,4 +1,4 @@
-# Краткая инструкция по установке MicroK8s и настройке Dashboard
+# Краткая руководство по установке MicroK8s и настройке Dashboard
 
 ## 1. Установка MicroK8s (чистая, с удалением старых данных)
 
@@ -91,9 +91,6 @@ kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboar
 
 ## 6. Если возникла ошибка containerd "no unpack platforms defined"
 
-**Причина:** неверная конфигурация containerd.  
-**Решение (делать до установки аддонов):**
-
 Остановите MicroK8s:
 ```bash
 microk8s stop
@@ -130,7 +127,3 @@ kubectl get pods --all-namespaces
 
 Все системные поды должны быть в статусе **Running**.  
 Доступ к Dashboard через `https://localhost:8443` с полученным токеном.
-
----
-
-**Готово!** Кластер готов к развертыванию приложений.
