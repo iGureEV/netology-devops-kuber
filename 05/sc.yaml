@@ -1,0 +1,77 @@
+---
+# StorageClass
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: sc-local
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+---
+# PersistentVolume, привязанный к StorageClass (обязателен при no-provisioner)
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-sc
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: sc-local
+  hostPath:
+    path: /mnt/sc-data
+---
+# PersistentVolumeClaim на основе StorageClass
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-sc
+  namespace: netology
+spec:
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: sc-local
+---
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-exchange-sc
+  namespace: netology
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: data-exchange-sc
+  template:
+    metadata:
+      labels:
+        app: data-exchange-sc
+    spec:
+      containers:
+        - name: busybox
+          image: busybox
+          command: ["/bin/sh", "-c"]
+          args:
+            - "while true; do echo \"$(date) saved via SC\" >> /data/index.html; sleep 5; done"
+          volumeMounts:
+            - name: storage
+              mountPath: /data
+        - name: multitool
+          image: wbitt/network-multitool
+          command: ["/bin/sh", "-c"]
+          args:
+            - "tail -f /data/index.html"
+          volumeMounts:
+            - name: storage
+              mountPath: /data
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: pvc-sc

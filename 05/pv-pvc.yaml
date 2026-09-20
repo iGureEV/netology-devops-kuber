@@ -1,0 +1,70 @@
+---
+# PersistentVolume - хранилище, созданное вручную
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-local
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  hostPath:
+    path: /mnt/data
+---
+# PersistentVolumeClaim - заявка на хранилище
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-local
+  namespace: netology
+spec:
+  volumeName: pv-local
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ""
+  resources:
+    requests:
+      storage: 1Gi
+---
+# Deployment - под, использующий PVC
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-exchange-pvc
+  namespace: netology
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: data-exchange-pvc
+  template:
+    metadata:
+      labels:
+        app: data-exchange-pvc
+    spec:
+      containers:
+        - name: busybox
+          image: busybox
+          command: ["/bin/sh", "-c"]
+          args:
+            - "while true; do echo \"$(date) saved via PV\" >> /data/index.html; sleep 5; done"
+          volumeMounts:
+            - name: storage
+              mountPath: /data
+        - name: multitool
+          image: wbitt/network-multitool
+          command: ["/bin/sh", "-c"]
+          args:
+            - "tail -f /data/index.html"
+          volumeMounts:
+            - name: storage
+              mountPath: /data
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: pvc-local
