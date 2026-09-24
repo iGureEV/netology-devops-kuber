@@ -63,11 +63,11 @@ CNI: Calico.
 
 | Откуда | Куда | Результат |
 |--------|------|-----------|
-| frontend | backend | 200 ✅ |
-| backend | cache | 200 ✅ |
-| frontend | cache | 000 ❌ |
-| backend | frontend | 000 ❌ |
-| cache | backend | 000 ❌ |
+| frontend | backend | 200 |
+| backend | cache | 200 |
+| frontend | cache | 000 |
+| backend | frontend | 000 |
+| cache | backend | 000 |
 
 ### Файлы манифестов
 
